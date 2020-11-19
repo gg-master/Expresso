@@ -4,6 +4,7 @@ import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtWidgets import QWidget, QTableWidgetItem
+from UI import addEditCoffeeForm, main_2
 
 
 def my_exception_hook(exctype, value, traceback):
@@ -18,10 +19,10 @@ def my_exception_hook(exctype, value, traceback):
 sys.excepthook = my_exception_hook
 
 
-class MyDialog(QDialog):
+class MyDialog(QDialog, addEditCoffeeForm.Ui_Dialog):
     def __init__(self, changed=False, info=None):
         super().__init__()
-        uic.loadUi('addEditCoffeeForm.ui', self)
+        self.setupUi(self)
         self.arr = []
         self.buttonBox.accepted.connect(self.accept1)
         self.buttonBox.rejected.connect(self.reject1)
@@ -47,11 +48,11 @@ class MyDialog(QDialog):
         return self.arr
 
 
-class MyWidget(QWidget):
+class MyWidget(QWidget, main_2.Ui_Form):
     def __init__(self):
         super().__init__()
-        uic.loadUi("main_2.ui", self)
-        self.con = sqlite3.connect("expresso_db.db")
+        self.setupUi(self)
+        self.con = sqlite3.connect(r"data\expresso_db.db")
         self.setWindowTitle("Коршунов-экспрессо")
 
         self.pushButton.clicked.connect(self.update_tab1)
@@ -95,9 +96,13 @@ class MyWidget(QWidget):
         ids = [self.tableWidget.item(i, 0).text() for i in rows]
         # Спрашиваем у пользователя подтверждение на удаление элементов
         if not ids:
+            if self.statusBar.isHidden():
+                self.statusBar.setHidden(False)
             self.statusBar.setText('Записть не выделена')
             return
         elif len(ids) > 1:
+            if self.statusBar.isHidden():
+                self.statusBar.setHidden(False)
             self.statusBar.setText('Выбрано более 1 записи')
             return
         item_inf = cur.execute(
@@ -130,6 +135,7 @@ class MyWidget(QWidget):
         self.titles = [description[0] for description in result.description]
         result = result.fetchall()
         self.tableWidget.setRowCount(len(result))
+        self.statusBar.setHidden(True)
 
         header = ['ID', 'название сорта',
                   'степень обжарки', 'молотый/в зернах',
